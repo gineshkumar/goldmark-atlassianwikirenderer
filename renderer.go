@@ -25,7 +25,6 @@ func New() renderer.Renderer {
 	r.nodeRendererFuncs[ast.KindBlockquote] = r.renderBlockQuote
 	r.nodeRendererFuncs[ast.KindEmphasis] = r.renderEmphasis
 	r.nodeRendererFuncs[east.KindTaskCheckBox] = r.renderTaskCheckBox
-
 	r.nodeRendererFuncs[ast.KindText] = r.renderText
 	r.nodeRendererFuncs[ast.KindParagraph] = r.renderParagraph
 	r.nodeRendererFuncs[ast.KindCodeBlock] = r.renderCodeBlock
@@ -86,10 +85,64 @@ func (r *atlassianRenderer) renderString(w util.BufWriter, _ []byte, node ast.No
 	_, _ = w.Write(n.Value)
 	return ast.WalkContinue, nil
 }
+
+const (
+	emphasis       = "_"
+	newline        = "\n"
+	citation       = "??"
+	inserted       = "+"
+	deleted        = "-"
+	monospaceStart = "{{"
+	monospaceEnd   = "}}"
+	strong         = "*"
+	subscript      = "~"
+	superscript    = "^"
+	horizontalLine = "----"
+)
+
+var htmlWikiMapping = map[string]string{
+	"<br>":      newline,
+	"<cite>":    citation,
+	"</cite>":   citation,
+	"<code>":    "{{",
+	"</code>":   "}}",
+	"<del>":     deleted,
+	"</del>":    deleted,
+	"<s>":       deleted,
+	"</s>":      deleted,
+	"<ins>":     inserted,
+	"</ins>":    inserted,
+	"<em>":      emphasis,
+	"</em>":     emphasis,
+	"<dfn>":     emphasis,
+	"</dfn>":    emphasis,
+	"<i>":       emphasis,
+	"</i>":      emphasis,
+	"<kbd>":     monospaceStart,
+	"</kbd>":    monospaceEnd,
+	"<q>":       "\"",
+	"</q>":      "\"",
+	"<strong>":  strong,
+	"</strong>": strong,
+	"<sub>":     subscript,
+	"</sub>":    subscript,
+	"<sup>":     superscript,
+	"</sup>":    superscript,
+}
+
 func (r *atlassianRenderer) renderRawHTML(w util.BufWriter, source []byte, node ast.Node, entering bool) (ast.WalkStatus, error) {
 	if entering {
 		n := node.(*ast.RawHTML)
-		renderLines(w, source, n.Segments)
+		lines := n.Segments
+		for i := 0; i < lines.Len(); i++ {
+			line := lines.At(i)
+			content := string(line.Value(source))
+			if wiki, ok := htmlWikiMapping[content]; ok {
+				_, _ = w.WriteString(wiki)
+			} else {
+				_, _ = w.WriteString(content)
+			}
+		}
 	}
 	return ast.WalkContinue, nil
 
@@ -123,7 +176,7 @@ func (r *atlassianRenderer) renderFootNoteList(w util.BufWriter, _ []byte, _ ast
 }
 
 func renderHorizontalLine(w util.BufWriter) (int, error) {
-	return w.WriteString("----")
+	return w.WriteString(horizontalLine)
 }
 func (r *atlassianRenderer) renderFootNoteLink(w util.BufWriter, _ []byte, node ast.Node, entering bool) (ast.WalkStatus, error) {
 	if entering {
@@ -246,7 +299,7 @@ func (r *atlassianRenderer) renderListItem(w util.BufWriter, _ []byte, node ast.
 			}
 		}
 		if !hasNestedList {
-			_, _ = w.WriteString("\n")
+			writeNewline(w)
 		}
 	}
 	return ast.WalkContinue, nil
@@ -262,12 +315,7 @@ func (r *atlassianRenderer) renderList(w util.BufWriter, _ []byte, node ast.Node
 }
 
 func (r *atlassianRenderer) renderStrikeThrough(w util.BufWriter, _ []byte, _ ast.Node, entering bool) (ast.WalkStatus, error) {
-	if entering {
-		_, _ = w.WriteString("-")
-	} else {
-		_, _ = w.WriteString("-")
-	}
-
+	_, _ = w.WriteString(deleted)
 	return ast.WalkContinue, nil
 }
 func (r *atlassianRenderer) renderAutoLink(w util.BufWriter, source []byte, node ast.Node, entering bool) (ast.WalkStatus, error) {
@@ -294,7 +342,6 @@ func (r *atlassianRenderer) renderLink(w util.BufWriter, _ []byte, node ast.Node
 }
 func (r *atlassianRenderer) renderHtmlBlock(w util.BufWriter, source []byte, node ast.Node, entering bool) (ast.WalkStatus, error) {
 	if entering {
-
 		_, _ = w.WriteString("{code:html}")
 		_, _ = w.Write(node.Text(source))
 		renderLines(w, source, node.Lines())
@@ -307,9 +354,9 @@ func (r *atlassianRenderer) renderHtmlBlock(w util.BufWriter, source []byte, nod
 }
 func (r *atlassianRenderer) renderCodeSpan(w util.BufWriter, _ []byte, _ ast.Node, entering bool) (ast.WalkStatus, error) {
 	if entering {
-		_, _ = w.WriteString("{{")
+		_, _ = w.WriteString(monospaceStart)
 	} else {
-		_, _ = w.WriteString("}}")
+		_, _ = w.WriteString(monospaceEnd)
 	}
 
 	return ast.WalkContinue, nil
@@ -329,13 +376,11 @@ func (r *atlassianRenderer) renderDocument(_ util.BufWriter, _ []byte, _ ast.Nod
 }
 func (r *atlassianRenderer) renderParagraph(w util.BufWriter, _ []byte, node ast.Node, _ bool) (ast.WalkStatus, error) {
 	ignoreParents := []ast.NodeKind{ast.KindListItem, east.KindFootnote}
-
 	for _, parent := range ignoreParents {
 		if node.Parent().Kind() == parent {
 			return ast.WalkContinue, nil
 		}
 	}
-
 	writeNewline(w)
 	return ast.WalkContinue, nil
 }
@@ -356,9 +401,9 @@ func (r *atlassianRenderer) renderText(w util.BufWriter, source []byte, node ast
 
 func (r *atlassianRenderer) renderEmphasis(w util.BufWriter, _ []byte, node ast.Node, entering bool) (ast.WalkStatus, error) {
 	n := node.(*ast.Emphasis)
-	tag := "_"
+	tag := emphasis
 	if n.Level == 2 {
-		tag = "*"
+		tag = strong
 	}
 	if entering {
 		_, _ = w.WriteString(tag)
@@ -410,8 +455,8 @@ func (r *atlassianRenderer) renderHeading(w util.BufWriter, _ []byte, node ast.N
 }
 
 func (r *atlassianRenderer) Render(w io.Writer, source []byte, n ast.Node) error {
-	/*debugMessage("Received request to render the document, staring the walk")
-	n.Dump(source, 2)*/
+	//debugMessage("Received request to render the document, staring the walk")
+	//n.Dump(source, 2)
 	writer := bufio.NewWriter(w)
 	err := ast.Walk(n, func(n ast.Node, entering bool) (ast.WalkStatus, error) {
 		s := ast.WalkContinue
