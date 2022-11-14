@@ -1,6 +1,6 @@
 # goldmark-atlassianwikirenderer
 
-goldmark-atlassianwikirenderer is a renderer for goldmark that allows rendering to [Atlassian Wiki Renderer](https://jira.atlassian.com/secure/WikiRendererHelpAction.jspa?section=all).
+goldmark-atlassianwikirenderer is a renderer for [goldmark](https://github.com/yuin/goldmark) that allows rendering to [Atlassian Wiki Formatting Notation](https://jira.atlassian.com/secure/WikiRendererHelpAction.jspa?section=all).
 
 # Usage
 
