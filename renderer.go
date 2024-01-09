@@ -54,9 +54,6 @@ func New() renderer.Renderer {
 	return r
 }
 
-/*func debugMessage(m string) {
-	fmt.Println(m)
-}*/
 func (r *atlassianRenderer) renderTaskCheckBox(w util.BufWriter, _ []byte, node ast.Node, entering bool) (ast.WalkStatus, error) {
 	if entering {
 		n := node.(*east.TaskCheckBox)
@@ -68,6 +65,7 @@ func (r *atlassianRenderer) renderTaskCheckBox(w util.BufWriter, _ []byte, node 
 	}
 	return ast.WalkContinue, nil
 }
+
 func (r *atlassianRenderer) renderThematicBreak(w util.BufWriter, _ []byte, _ ast.Node, entering bool) (ast.WalkStatus, error) {
 	if !entering {
 		return ast.WalkContinue, nil
@@ -77,6 +75,7 @@ func (r *atlassianRenderer) renderThematicBreak(w util.BufWriter, _ []byte, _ as
 	writeNewline(w)
 	return ast.WalkContinue, nil
 }
+
 func (r *atlassianRenderer) renderString(w util.BufWriter, _ []byte, node ast.Node, entering bool) (ast.WalkStatus, error) {
 	if !entering {
 		return ast.WalkContinue, nil
@@ -145,8 +144,8 @@ func (r *atlassianRenderer) renderRawHTML(w util.BufWriter, source []byte, node 
 		}
 	}
 	return ast.WalkContinue, nil
-
 }
+
 func (r *atlassianRenderer) renderDefinitionDescription(w util.BufWriter, _ []byte, _ ast.Node, entering bool) (ast.WalkStatus, error) {
 
 	if entering {
@@ -154,17 +153,16 @@ func (r *atlassianRenderer) renderDefinitionDescription(w util.BufWriter, _ []by
 		_, _ = w.WriteString("--  ")
 	}
 	return ast.WalkContinue, nil
-
 }
-func (r *atlassianRenderer) renderDefinitionTerm(w util.BufWriter, _ []byte, _ ast.Node, entering bool) (ast.WalkStatus, error) {
 
+func (r *atlassianRenderer) renderDefinitionTerm(w util.BufWriter, _ []byte, _ ast.Node, entering bool) (ast.WalkStatus, error) {
 	if entering {
 		writeNewline(w)
 		_, _ = w.WriteString("-  ")
 	}
 	return ast.WalkContinue, nil
-
 }
+
 func (r *atlassianRenderer) renderFootNoteList(w util.BufWriter, _ []byte, _ ast.Node, entering bool) (ast.WalkStatus, error) {
 
 	if entering {
@@ -172,12 +170,12 @@ func (r *atlassianRenderer) renderFootNoteList(w util.BufWriter, _ []byte, _ ast
 		_, _ = renderHorizontalLine(w)
 	}
 	return ast.WalkContinue, nil
-
 }
 
 func renderHorizontalLine(w util.BufWriter) (int, error) {
 	return w.WriteString(horizontalLine)
 }
+
 func (r *atlassianRenderer) renderFootNoteLink(w util.BufWriter, _ []byte, node ast.Node, entering bool) (ast.WalkStatus, error) {
 	if entering {
 		n := node.(*east.FootnoteLink)
@@ -196,8 +194,8 @@ func (r *atlassianRenderer) renderFootNoteLink(w util.BufWriter, _ []byte, node 
 		}
 	}
 	return ast.WalkContinue, nil
-
 }
+
 func (r *atlassianRenderer) renderFootNote(w util.BufWriter, _ []byte, node ast.Node, entering bool) (ast.WalkStatus, error) {
 
 	if entering {
@@ -215,10 +213,11 @@ func (r *atlassianRenderer) renderImage(w util.BufWriter, _ []byte, node ast.Nod
 	n := node.(*ast.Image)
 	if entering {
 		_, _ = w.WriteString(fmt.Sprintf("!%s!", n.Destination))
+		writeNewline(w)
 	}
 	return ast.WalkSkipChildren, nil
-
 }
+
 func (r *atlassianRenderer) renderTableRow(w util.BufWriter, _ []byte, _ ast.Node, entering bool) (ast.WalkStatus, error) {
 	if entering {
 		_, _ = w.WriteString("|")
@@ -228,6 +227,7 @@ func (r *atlassianRenderer) renderTableRow(w util.BufWriter, _ []byte, _ ast.Nod
 	}
 	return ast.WalkContinue, nil
 }
+
 func (r *atlassianRenderer) renderTableHeader(w util.BufWriter, _ []byte, _ ast.Node, entering bool) (ast.WalkStatus, error) {
 	if entering {
 		_, _ = w.WriteString("||")
@@ -235,18 +235,11 @@ func (r *atlassianRenderer) renderTableHeader(w util.BufWriter, _ []byte, _ ast.
 		_, _ = w.WriteString("||")
 		writeNewline(w)
 	}
-
 	return ast.WalkContinue, nil
 }
+
 func (r *atlassianRenderer) renderTableCell(w util.BufWriter, _ []byte, node ast.Node, entering bool) (ast.WalkStatus, error) {
 	if entering && !node.HasChildren() {
-		//if this is an empty cell then add a space
-		/*
-			TableCell {
-			   	RawText: ""
-				HasBlankPreviousLines: false
-			}
-		*/
 		_, _ = w.WriteString(" ")
 
 	}
@@ -265,9 +258,11 @@ func (r *atlassianRenderer) renderTableCell(w util.BufWriter, _ []byte, node ast
 func (r *atlassianRenderer) renderTable(_ util.BufWriter, _ []byte, _ ast.Node, _ bool) (ast.WalkStatus, error) {
 	return ast.WalkContinue, nil
 }
+
 func (r *atlassianRenderer) renderTextBlock(_ util.BufWriter, _ []byte, _ ast.Node, _ bool) (ast.WalkStatus, error) {
 	return ast.WalkContinue, nil
 }
+
 func (r *atlassianRenderer) renderListItem(w util.BufWriter, _ []byte, node ast.Node, entering bool) (ast.WalkStatus, error) {
 	listItem := node.(*ast.ListItem)
 
@@ -304,6 +299,7 @@ func (r *atlassianRenderer) renderListItem(w util.BufWriter, _ []byte, node ast.
 	}
 	return ast.WalkContinue, nil
 }
+
 func (r *atlassianRenderer) renderList(w util.BufWriter, _ []byte, node ast.Node, entering bool) (ast.WalkStatus, error) {
 
 	if entering {
@@ -318,6 +314,7 @@ func (r *atlassianRenderer) renderStrikeThrough(w util.BufWriter, _ []byte, _ as
 	_, _ = w.WriteString(deleted)
 	return ast.WalkContinue, nil
 }
+
 func (r *atlassianRenderer) renderAutoLink(w util.BufWriter, source []byte, node ast.Node, entering bool) (ast.WalkStatus, error) {
 	n := node.(*ast.AutoLink)
 	address := string(n.URL(source))
@@ -327,9 +324,9 @@ func (r *atlassianRenderer) renderAutoLink(w util.BufWriter, source []byte, node
 	if entering {
 		_, _ = w.WriteString(fmt.Sprintf("[%v]", address))
 	}
-
 	return ast.WalkContinue, nil
 }
+
 func (r *atlassianRenderer) renderLink(w util.BufWriter, _ []byte, node ast.Node, entering bool) (ast.WalkStatus, error) {
 	n := node.(*ast.Link)
 	if entering {
@@ -337,9 +334,9 @@ func (r *atlassianRenderer) renderLink(w util.BufWriter, _ []byte, node ast.Node
 	} else {
 		_, _ = w.WriteString(fmt.Sprintf("|%s]", n.Destination))
 	}
-
 	return ast.WalkContinue, nil
 }
+
 func (r *atlassianRenderer) renderHtmlBlock(w util.BufWriter, source []byte, node ast.Node, entering bool) (ast.WalkStatus, error) {
 	if entering {
 		_, _ = w.WriteString("{code:html}")
@@ -349,31 +346,32 @@ func (r *atlassianRenderer) renderHtmlBlock(w util.BufWriter, source []byte, nod
 	} else {
 		_, _ = w.WriteString("{code}\n")
 	}
-
 	return ast.WalkContinue, nil
 }
+
 func (r *atlassianRenderer) renderCodeSpan(w util.BufWriter, _ []byte, _ ast.Node, entering bool) (ast.WalkStatus, error) {
 	if entering {
 		_, _ = w.WriteString(monospaceStart)
 	} else {
 		_, _ = w.WriteString(monospaceEnd)
 	}
-
 	return ast.WalkContinue, nil
 }
+
 func (r *atlassianRenderer) renderCodeBlock(w util.BufWriter, _ []byte, _ ast.Node, entering bool) (ast.WalkStatus, error) {
 	if entering {
 		_, _ = w.WriteString("{code}")
-
 	} else {
 		_, _ = w.WriteString("{code}\n")
 	}
 
 	return ast.WalkContinue, nil
 }
+
 func (r *atlassianRenderer) renderDocument(_ util.BufWriter, _ []byte, _ ast.Node, _ bool) (ast.WalkStatus, error) {
 	return ast.WalkContinue, nil
 }
+
 func (r *atlassianRenderer) renderParagraph(w util.BufWriter, _ []byte, node ast.Node, _ bool) (ast.WalkStatus, error) {
 	ignoreParents := []ast.NodeKind{ast.KindListItem, east.KindFootnote}
 	for _, parent := range ignoreParents {
@@ -388,12 +386,13 @@ func (r *atlassianRenderer) renderParagraph(w util.BufWriter, _ []byte, node ast
 func writeNewline(w util.BufWriter) {
 	_ = w.WriteByte('\n')
 }
+
 func (r *atlassianRenderer) renderText(w util.BufWriter, source []byte, node ast.Node, entering bool) (ast.WalkStatus, error) {
 	if entering {
 		n := node.(*ast.Text)
 		_, _ = w.WriteString(string(n.Text(source)))
 		if n.HardLineBreak() || n.SoftLineBreak() {
-			_, _ = w.WriteString("\n\n")
+			_, _ = w.WriteString("\n")
 		}
 	}
 	return ast.WalkContinue, nil
@@ -413,8 +412,12 @@ func (r *atlassianRenderer) renderEmphasis(w util.BufWriter, _ []byte, node ast.
 	return ast.WalkContinue, nil
 }
 
-func (r *atlassianRenderer) renderBlockQuote(w util.BufWriter, _ []byte, _ ast.Node, _ bool) (ast.WalkStatus, error) {
-	_, _ = w.WriteString("{quote}")
+func (r *atlassianRenderer) renderBlockQuote(w util.BufWriter, _ []byte, _ ast.Node, entering bool) (ast.WalkStatus, error) {
+	if entering {
+		_, _ = w.WriteString("{quote}")
+	} else {
+		_, _ = w.WriteString("{quote}")
+	}
 	return ast.WalkContinue, nil
 }
 
@@ -428,9 +431,11 @@ func (r *atlassianRenderer) renderFencedCodeBlock(w util.BufWriter, source []byt
 		} else {
 			_, _ = w.WriteString(fmt.Sprintf("{code:%s}", lang))
 		}
+		writeNewline(w)
 		renderLines(w, source, n.Lines())
 	} else {
 		_, _ = w.WriteString("{code}\n")
+		writeNewline(w)
 	}
 	return ast.WalkContinue, nil
 }
@@ -449,14 +454,11 @@ func (r *atlassianRenderer) renderHeading(w util.BufWriter, _ []byte, node ast.N
 		_, _ = w.WriteString(fmt.Sprintf("h%v.", n.Level))
 	} else {
 		writeNewline(w)
-		writeNewline(w)
 	}
 	return ast.WalkContinue, nil
 }
 
 func (r *atlassianRenderer) Render(w io.Writer, source []byte, n ast.Node) error {
-	//debugMessage("Received request to render the document, staring the walk")
-	//n.Dump(source, 2)
 	writer := bufio.NewWriter(w)
 	err := ast.Walk(n, func(n ast.Node, entering bool) (ast.WalkStatus, error) {
 		s := ast.WalkContinue
@@ -465,11 +467,7 @@ func (r *atlassianRenderer) Render(w io.Writer, source []byte, n ast.Node) error
 
 		if f != nil {
 			s, err = f(writer, source, n, entering)
-		} /* else {
-			debugMessage(fmt.Sprintf("Node Kind %v, render func not found , source dump \n", n.Kind()))
-			n.Dump(source, 2)
-
-		}*/
+		}
 		return s, err
 	})
 
